@@ -35,35 +35,34 @@ def detector(message):
 
 @app.route('/getmsg/', methods=['GET'])
 def respond():
-    # Retrieve the name from url parameter
-    name = request.args.get("name", None)
-
-    # For debugging
-    print(f"got name {name}")
-
+    # Retrieve the message from url parameter
+    message = request.args.get("message", None)
     response = {}
-
     # Check if user sent a name at all
-    if not name:
-        response["ERROR"] = "no name found, please send a name."
-    # Check if the user entered a number not a name
-    elif str(name).isdigit():
-        response["ERROR"] = "name can't be numeric."
+    if not message:
+        response["ERROR"] = "no user input found, please send a message."
     # Now the user entered a valid name
     else:
-        response["MESSAGE"] = f"Welcome {name} to our awesome platform!!"
-
-    # Return the response in json format
-    return jsonify(response)
+        classified_text = detector(message)[0]
+        messageAccuracy = round(float(detector(message)[1]) * 100,1)
+    #     response["result"] = {f" The Sentence {message} is {classified_text} and the accuracy is {messageAccuracy}"
+        
+    # # Return the response in json format
+    # return jsonify(response)
+    return jsonify({
+            "Message": f"{message}",
+            "result": f"{classified_text}",
+            "accuracy" : f"{messageAccuracy} %"
+        })
 
 @app.route('/post/', methods=['POST'])
 def post_something():
-    param = request.form.get('name')
+    param = request.form.get('message')
     print(param)
     # You can add the test cases you made in the previous function, but in our case here you are just testing the POST functionality
     if param:
         return jsonify({
-            "Message": f"Welcome {name} to our awesome platform!!",
+            "Message": f"Welcome {message} to our awesome platform!!",
             # Add this option to distinct the POST request
             "METHOD" : "POST"
         })
