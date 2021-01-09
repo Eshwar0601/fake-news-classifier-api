@@ -3,7 +3,8 @@ from textblob.classifiers import NaiveBayesClassifier
 from textblob import TextBlob
 app = Flask(__name__)
 
-def detector(message):
+@app.route('/getmsg/', methods=['GET'])
+def respond():
     train = [
         ('Says the Annies List political group supports third-trimester abortions on demand.', 'false'),
         ('Donald Trump is against marriage equality. He wants to go back.', 'true'),
@@ -24,17 +25,8 @@ def detector(message):
         ('When I was governor, not only did test scores improve we also narrowed the achievement gap.', 'true'),
         ("Ukraine was a nuclear-armed state. They gave away their nuclear arms with the understanding that we would protect them.", 'false')
     ]
-
     cl = NaiveBayesClassifier(train)
-    print(" Testing ...")
     print("your test accuracy is ", cl.accuracy(test))
-
-    classified_text = cl.classify(message)
-    messageAccuracy = cl.accuracy(test)
-    return classified_text,messageAccuracy
-
-@app.route('/getmsg/', methods=['GET'])
-def respond():
     # Retrieve the message from url parameter
     message = request.args.get("message", None)
     response = {}
@@ -43,16 +35,16 @@ def respond():
         response["ERROR"] = "no user input found, please send a message."
     # Now the user entered a valid name
     else:
-        classified_text = detector(message)[0]
-        messageAccuracy = round(float(detector(message)[1]) * 100,1)
+        classified_text = cl.classify(message)
+        
     #     response["result"] = {f" The Sentence {message} is {classified_text} and the accuracy is {messageAccuracy}"
         
     # # Return the response in json format
     # return jsonify(response)
     return jsonify({
             "Message": f"{message}",
-            "result": f"{classified_text}",
-            "accuracy" : f"{messageAccuracy} %"
+            "result": f"{classified_text}"
+            
         })
 
 @app.route('/post/', methods=['POST'])
@@ -76,6 +68,8 @@ def post_something():
 def index():
     return "<h1>Welcome to our server !!</h1>"
 
+
 if __name__ == '__main__':
     # Threaded option to enable multiple instances for multiple user access support
     app.run(threaded=True, port=5000)
+
